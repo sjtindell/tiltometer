@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tiltometer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  </head>
+  <body ng-app="app">
+    <div ng-controller="AppCtrl" class="container">
+      <h1>Tiltometer</h1>
+      <form novalidate class="simple-form" role="form">
+        <input type="text" ng-model="player.name" class="form-control" placeholder="player name" />
+        <input type="radio" ng-model="player.region" value="na" />NA
+        <input type="radio" ng-model="player.region" value="euw" />EUW<br>
+        <button ng-click="submit()" class="btn btn-default">Submit</button>
+      </form>
+      <br>
+      <h4>Results</h4>
+      Players
+      <ul class="list-group">
+        <li ng-repeat="result in results" class="list-group-item">
+          {{ result }}
+        </li>
+      </ul>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script>
+      var app = angular.module("app", [])
+      .controller("AppCtrl", function($scope, $http) {
+        $scope.ids = []
+        $scope.results = []
+        $scope.submit = function() {
+          $http.get("/api/summary/" + $scope.player.region + "/" + $scope.player.name)
+          .then(function(body) {
+            for (i=0; i < body.data.participants.length; i++) {
+              var player = body.data.participants[i]
+              $scope.ids.push(player.summonerId)
+            }
+          })
+          .then(function() {
+            console.log("ids:", $scope.ids)
+            console.log("/api/tilt/" + $scope.player.region + "/" + $scope.ids[0])
+            $http.get("/api/tilt/" + $scope.player.region + "/" + $scope.ids[0])
+            .then(function(body) {
+              $scope.results.push(body)
+            })
+          })
+        }
+      })
+    </script>
+  </body>
+</html>
