@@ -16,10 +16,9 @@
       </form>
       <br>
       <h4>Results</h4>
-      Players
       <ul class="list-group">
-        <li ng-repeat="result in results" class="list-group-item">
-          {{ result }}
+        <li ng-repeat="player in players" class="list-group-item">
+          {{ player }}
         </li>
       </ul>
     </div>
@@ -27,23 +26,19 @@
     <script>
       var app = angular.module("app", [])
       .controller("AppCtrl", function($scope, $http) {
-        $scope.ids = []
-        $scope.results = []
+        $scope.players = []
         $scope.submit = function() {
           $http.get("/api/summary/" + $scope.player.region + "/" + $scope.player.name)
           .then(function(body) {
-            for (i=0; i < body.data.participants.length; i++) {
-              var player = body.data.participants[i]
-              $scope.ids.push(player.summonerId)
-            }
+            return body.data.participants
           })
-          .then(function() {
-            console.log("ids:", $scope.ids)
-            console.log("/api/tilt/" + $scope.player.region + "/" + $scope.ids[0])
-            $http.get("/api/tilt/" + $scope.player.region + "/" + $scope.ids[0])
-            .then(function(body) {
-              $scope.results.push(body)
-            })
+          .then(function(participants) {
+            for (i = 0; i < 1; i++) {
+              $http.get("/api/tilt/" + $scope.player.region + "/" + participants[i].summonerId)
+              .then(function(body) {
+                $scope.players = body
+              })
+            }
           })
         }
       })

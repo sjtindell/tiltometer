@@ -15,7 +15,7 @@ app.get("/", function(req, res) {
 
 
 app.get("/api/summary/:region/:name", function(req, res, next) {
-  
+
   var region = req.params.region
   var name = req.params.name
 
@@ -25,42 +25,65 @@ app.get("/api/summary/:region/:name", function(req, res, next) {
     return JSON.parse(body)[name]["id"]
   })
   .then(function(id) {
-    url = conf.current_game_url
     platform = conf.platforms[region]
-    return request(util.format(url, region, platform, id))
+    return request(util.format(conf.current_game_url, region, platform, id))
   })
-  .then(function(body) {
+  .then(function(body) { 
     data = JSON.parse(body)
-    res.status(201).send(data);
-  })  
-});
+    res.json(data)
+  })
+})
+  
 
-app.get("/api/tilt/:region/:id", function(req, res, next) { 
+app.get("/api/tilt/:region/:id", function(req, res, next) {
+
   var region = req.params.region
   var id = req.params.id
-  
-  var player = {}
-  var results = []
-  var count = 0
-  var urls = [
-    util.format(conf.matchlist_url, region, region, id),
-    util.format(conf.game_url, region, region, id)
-  ]
 
-  for (i=0; i < urls.length; i++) {
-    console.log(urls[i])
-    request(urls[i])
-    .then(function(body) {
-      results.push(body)
-      count += 1
-      if (count == urls.length) {
-        console.log("sending results")
-        res.json(results)
+  //var results = []
+  //var count = 0
+  //var urls = [ array of urls to store results in before res.json(results) ]
+
+  request(util.format(conf.game_url, region, region, id))
+  .then(function(body) {
+    var data = JSON.parse(body)
+    // check tilt
+    var winner = false
+    var feeder = true
+    count = 0
+    feed = 0
+    for (i=0; i < data.games.length; i++) {
+      if (data.games[i].stats.win) {
+        count += 1
       }
-    })
-  }
-})
+      if (data.games[i].stats.numDeaths > 5) {
+        feed += 1
+      }
+    }
+    console.log("counted")
+    if (count > data.games.length) {
+      winner = true
+    }
+    if (feed < 5) {
+      feeder = false
+    }
+    
+    if (!winner && feeder == true) {
+      console.log("feeder!")
+      daata.tilt = true
+    }
+    else if (!winner && feeder == false) {
+      console.log("slight feeder")
+      data.tilt = true
+    }
+    else if (winner && !feeder) {
+      data.tilt = false
+    }
 
+    console.log(data.tilt)
+    res.json(data)
+  })
+})
 
 app.listen(3000, function() {
   console.log("Server listening on", 3000);
