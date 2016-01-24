@@ -48,39 +48,27 @@ app.get("/api/tilt/:region/:id", function(req, res, next) {
   .then(function(body) {
     var data = JSON.parse(body)
     // check tilt
-    var winner = false
-    var feeder = true
-    count = 0
-    feed = 0
+    wins = 0
+    kds = []
     for (i=0; i < data.games.length; i++) {
       if (data.games[i].stats.win) {
-        count += 1
+        wins += 1
       }
-      if (data.games[i].stats.numDeaths > 5) {
-        feed += 1
+      kills = data.games[i].stats.championsKilled
+      deaths = data.games[i].stats.numDeaths
+      if (kills == null) {
+        kills = 0
       }
-    }
-    console.log("counted")
-    if (count > data.games.length) {
-      winner = true
-    }
-    if (feed < 5) {
-      feeder = false
-    }
+      if (deaths == null) {
+        deaths = 0
+      }
+      kds.push(kills / deaths)
+      console.log(kills, deaths, kills / deaths)
+      }
     
-    if (!winner && feeder == true) {
-      console.log("feeder!")
-      daata.tilt = true
-    }
-    else if (!winner && feeder == false) {
-      console.log("slight feeder")
-      data.tilt = true
-    }
-    else if (winner && !feeder) {
-      data.tilt = false
-    }
-
-    console.log(data.tilt)
+    data.wins = wins
+    data.kd = kds.reduce(function(a, b){return a + b})
+    console.log(kds)
     res.json(data)
   })
 })
