@@ -16,6 +16,7 @@
       </form>
       <br>
       <h4>Results</h4>
+      <p>{{ currentData }}</p>
       <ul class="list-group">
         <li ng-repeat="player in players" class="list-group-item">
           {{ player }}
@@ -26,19 +27,18 @@
     <script>
       var app = angular.module("app", [])
       .controller("AppCtrl", function($scope, $http) {
-        $scope.players = []
         $scope.submit = function() {
-          $http.get("/api/summary/" + $scope.player.region + "/" + $scope.player.name)
-          .then(function(body) {
-            return body.data.participants
-          })
-          .then(function(participants) {
-            for (i = 0; i < 1; i++) {
-              $http.get("/api/tilt/" + $scope.player.region + "/" + participants[i].summonerId)
-              .then(function(body) {
-                $scope.players = body
-              })
-            }
+          $http.get("/api/current/" + $scope.player.region + "/" + $scope.player.name)
+          .then(function(currentGame) {
+            players = currentGame.data.participants
+            bans = currentGame.data.bannedChampions
+            started = currentGame.data.startTime
+            $http.get("/api/tilt/" + $scope.player.region + "/" + players[0].summonerId)
+            .then(function(history) {
+              // check dates, how many are recent games?
+              // weight the most recent games higher
+              console.log(history.data.games)
+            })
           })
         }
       })

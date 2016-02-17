@@ -14,36 +14,33 @@ app.get("/", function(req, res) {
 })
 
 
-app.get("/api/summary/:region/:name", function(req, res, next) {
+app.get("/api/current/:region/:name", function(req, res, next) {
 
   var region = req.params.region
   var name = req.params.name
 
+  // get player id
   request(util.format(conf.id_url, region, region, name))
   .then(function(body) {
     name = name.toLowerCase().replace(/ /g,'')
-    return JSON.parse(body)[name]["id"]
-  })
-  .then(function(id) {
+    id = JSON.parse(body)[name]["id"]
     platform = conf.platforms[region]
-    return request(util.format(conf.current_game_url, region, platform, id))
+    
+    // get current game
+    request(util.format(conf.current_game_url, region, platform, id))
+    .then(function(body) {
+      data = JSON.parse(body)
+      res.json(data)
+    })
   })
-  .then(function(body) {
-    data = JSON.parse(body)
-    res.json(data)
-  })
-})
-  
+})  
 
 app.get("/api/tilt/:region/:id", function(req, res, next) {
 
   var region = req.params.region
   var id = req.params.id
 
-  //var results = []
-  //var count = 0
-  //var urls = [ array of urls to store results in before res.json(results) ]
-
+  // get game history
   request(util.format(conf.game_url, region, region, id))
   .then(function(body) {
     var data = JSON.parse(body)
