@@ -35,7 +35,7 @@ app.get("/api/current/:region/:name", function(req, res, next) {
   })
 })  
 
-app.get("/api/tilt/:region/:id", function(req, res, next) {
+app.get("/api/history/:region/:id", function(req, res, next) {
 
   var region = req.params.region
   var id = req.params.id
@@ -43,19 +43,8 @@ app.get("/api/tilt/:region/:id", function(req, res, next) {
   // get game history
   request(util.format(conf.game_url, region, region, id))
   .then(function(body) {
-    var data = JSON.parse(body)
-    
-    //check data
-    console.log(data)
-    
-    // check dates. is this the first game today? determine recent games
-    for (i = 0; i < data.games.length; i++) {
-      if (i + 1 < data.games.length) {
-        gameA = data.games[i].createDate
-        gameB = data.games[i + 1].createDate
-        difference = (gameA - gameB) / 3600000
-      }
-    }
+    data = JSON.parse(body)
+    res.json(data)
 
     // more deaths than usual recently
     // playing champs you're not used to because they beat you previously
@@ -67,30 +56,17 @@ app.get("/api/tilt/:region/:id", function(req, res, next) {
     // playing new champ e.g. bad lobby, favorite banned, etc.
     // strange picks or team comp
 
-    // win, loss, kill, death
-    wins = 0
-    kds = []
-    for (i=0; i < data.games.length; i++) {
-      if (data.games[i].stats.win) {
-        wins += 1
-      }
-      kills = data.games[i].stats.championsKilled
-      deaths = data.games[i].stats.numDeaths
-      if (kills == null) {
-        kills = 0
-      }
-      if (deaths == null) {
-        deaths = 0
-      }
-      kds.push(kills / deaths)
-      //console.log(kills, deaths, kills / deaths)
-      }
-    wl = wins / 10 
-    kd = kds.reduce(function(a, b){return a + b})
-    //console.log("kd:", kd)
-    //console.log("wl:", wl)
+  })
+})
 
+app.get("/api/champ/:region", function(req, res, next) {
 
+  var region = req.params.region
+  var champId = req.params.id
+
+  request(util.format(conf.static_data_url, "global", region))
+  .then(function(body) {
+    data = JSON.parse(body)
     res.json(data)
   })
 })

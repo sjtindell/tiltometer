@@ -33,11 +33,26 @@
             players = currentGame.data.participants
             bans = currentGame.data.bannedChampions
             started = currentGame.data.startTime
-            $http.get("/api/tilt/" + $scope.player.region + "/" + players[0].summonerId)
-            .then(function(history) {
-              // check dates, how many are recent games?
-              // weight the most recent games higher
-              console.log(history.data.games)
+            $http.get("/api/history/" + $scope.player.region + "/" + players[0].summonerId)
+            .then(function(playerHistory) {
+              
+              // playing a champ you're not used to because
+              // they beat you previously
+
+              // champs being played
+              $http.get("/api/champ/" + $scope.player.region)
+              .then(function(body) {
+                keys = Object.keys(body.data.data)
+                for (i = 0; i < keys.length; i++) {
+                  champ = body.data.data[keys[i]]
+                  for (k = 0; k < players.length; k++) {
+                    player = players[k]
+                    if (player.championId== champ.id) {
+                      console.log(player, champ)
+                    }
+                  }
+                }
+              })
             })
           })
         }
