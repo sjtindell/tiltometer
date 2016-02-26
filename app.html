@@ -28,31 +28,67 @@
       var app = angular.module("app", [])
       .controller("AppCtrl", function($scope, $http) {
         $scope.submit = function() {
+          
+
           $http.get("/api/current/" + $scope.player.region + "/" + $scope.player.name)
           .then(function(currentGame) {
             players = currentGame.data.participants
             bans = currentGame.data.bannedChampions
             started = currentGame.data.startTime
-            $http.get("/api/history/" + $scope.player.region + "/" + players[0].summonerId)
-            .then(function(playerHistory) {
-              
-              // playing a champ you're not used to because
-              // they beat you previously
-
-              // champs being played
-              $http.get("/api/champ/" + $scope.player.region)
-              .then(function(body) {
-                keys = Object.keys(body.data.data)
-                for (i = 0; i < keys.length; i++) {
-                  champ = body.data.data[keys[i]]
-                  for (k = 0; k < players.length; k++) {
-                    player = players[k]
-                    if (player.championId== champ.id) {
-                      console.log(player, champ)
-                    }
+            
+            // get champs played for each player
+            $http.get("/api/champ/" + $scope.player.region)
+            .then(function(body) {
+              staticChampData = body.data.data
+              names = Object.keys(staticChampData)
+              for (i = 0; i < names.length; i++) {
+                champ = staticChampData[names[i]]
+                for (k = 0; k < players.length; k++) {
+                  player = players[k]
+                  if (player.championId == champ.id) {
+                    player.currentChamp = champ
                   }
                 }
-              })
+              }
+            })
+
+            // calculate one players tilt
+            // get their history
+            $http.get("/api/history/" + $scope.player.region + "/" + players[0].summonerId)
+            .then(function(playerHistory) {
+              player = players[0]
+              console.log("Player:", player)
+              games = playerHistory.data.games
+              console.log("Games:", games)
+
+              // has player played this champ recently
+              times_played = 0
+              for (i = 0; i < games.length; i++) {
+                if (games[i].championId == player.championId) {
+                  times_played += 1
+                }
+              }
+              // playing new champ e.g. bad lobby, favorite banned, etc.
+              console.log(times_played)
+
+              // playing a champ you're not used to because
+              // they beat you previously
+              previous_game = playerHistory.data.games[0]
+              for (i = 0; i < previous_game.fellowPlayers.length; i++) {
+                user = previous_game.fellowPlayers[i]
+                // if you are playing a champ they played
+                if (player.championId == user.championId &&
+                    // and they weren't on your team
+                    previous_game.stats.team != user.teamId &&
+                    // and you lost
+                    previous_game.stats.win == false &&
+                    // and you haven't played that champ in 9 games
+                    times_played == 0) { 
+                  console.log("they're tilted boys")
+                }
+              }
+
+
             })
           })
         }
