@@ -1,12 +1,14 @@
-var express = require("express");
-var bodyParser = require("body-parser");
-var request = require("request-promise");
+var express = require("express")
+var bodyParser = require("body-parser")
+var request = require("request-promise")
 var path = require("path")
 var conf = require("./config")
 var util = require("util")
 
-var app = express();
-app.use(bodyParser.json());
+var app = express()
+app.use(bodyParser.json())
+
+app.use("/favicon.ico", express.static('favicon.ico'))
 
 
 app.get("/", function(req, res) {
@@ -32,7 +34,15 @@ app.get("/api/current/:region/:name", function(req, res, next) {
       data = JSON.parse(body)
       res.json(data)
     })
+    .catch(function(err) {
+      console.log("crawl failed")
+      console.log(err)
+    })
   })
+  .catch(function(err) {
+    console.log("crawl failed")
+    console.log(err)
+  }) 
 })  
 
 app.get("/api/history/:region/:id", function(req, res, next) {
@@ -45,16 +55,6 @@ app.get("/api/history/:region/:id", function(req, res, next) {
   .then(function(body) {
     data = JSON.parse(body)
     res.json(data)
-
-    // more deaths than usual recently
-    // playing champs you're not used to because they beat you previously
-    // on hot streak, on loss streak
-    // recently switched from winning to losing, vice versa
-    // banned champs who won previously
-    // how often someone is banned, chat banned, etc.
-    // increasingly negative k/d
-    // playing new champ e.g. bad lobby, favorite banned, etc.
-    // strange picks or team comp
 
   })
 })
