@@ -8,8 +8,9 @@ var util = require("util")
 var app = express()
 app.use(bodyParser.json())
 
-app.use("/favicon.ico", express.static('favicon.ico'))
+app.use("/favicon.ico", express.static("favicon.ico"))
 
+app.use("/app.js", express.static("app.js"))
 
 app.get("/", function(req, res) {
   res.sendFile(path.resolve("app.html"))
