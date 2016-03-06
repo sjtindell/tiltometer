@@ -1,7 +1,7 @@
 var router = require("express").Router()
 var request = require("request-promise")
 var path = require("path")
-var conf = require("./config")
+var conf = require("../config")
 var util = require("util")
 
 
