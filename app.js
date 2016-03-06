@@ -34,6 +34,7 @@ var app = angular.module("app", [])
         console.log("Player:", player)
 
         // we only use summoners rift games for now
+        // both ranked and unranked
         games = []
         for (i = 0; i < playerHistory.data.games.length; i++) {
           if (playerHistory.data.games[i].gameMode == "CLASSIC") {
@@ -54,17 +55,21 @@ var app = angular.module("app", [])
               // and you lost
               previous_game.stats.win == false &&
               // and you haven't played that champ often
-              times_played < 2) { 
-            console.log("playing a new champ because they beat you.")
+              times_played < 3) { 
+            console.log("playing a champ because they beat you.")
             console.log("they're tilted boys, +1")
           }
         }
 
         // was the last game an ff at 20 loss?
-        if (1199 < previous_game.stats.timePlayed < 1250 &&
+        last_game_time = previous_game.stats.timePlayed / 60
+        if (last_game_time < 21 &&
             previous_game.stats.win == false) {
           console.log("last game ended @ 20 mins")
           console.log("and they lost. possible tilt +1")
+        } else {
+          console.log("Last Game Took:", last_game_time)
+          console.log("and win is", previous_game.stats.win)
         }
 
         // has player played this champ recently
@@ -134,16 +139,22 @@ var app = angular.module("app", [])
         } 
 
         if (count > 0) {
-          recent_games = games.slice(0, count)
+          session_games = games.slice(0, count)
           previous_games = games.slice(count)
-          console.log("Played", count, "Games Recently:", recent_games)
+          console.log("Played", count, "Games Recently:", session_games)
         } else {
           time = (current_start - games[i].createDate) / 60000
           console.log("No Recent Games. Time Since Last:", time)
         }
 
         function get_adjusted_kds(k, d, a) {
-          return (k + (a / 2)) / d
+          calc = (k + (a / 2)) / d
+          if (k == 0 && calc == Infinity) {
+            calc = ["Infinity", d + (a / 2)]
+          } else if (d == 0 && calc == Infinity) {
+            calc = ["Infinity", k + (a / 2)]
+          }
+          return calc
         }
 
         function null_check(i) {
@@ -151,29 +162,54 @@ var app = angular.module("app", [])
           else {return i}
         }
 
-        // establish baseline, overall kds
-        kds = []
-        for (j = 0; j < games.length; j++) {
-          stats = games[j].stats
-          k = null_check(stats.championsKilled)
-          d = null_check(stats.numDeaths)
-          a = null_check(stats.assists)
-          total = get_adjusted_kds(k, d, a) 
-          //console.log(k, d, a, k/d, total)
-          kds.push(total)
+        function get_kds(arr) {
+          tmp = []
+          for (i = 0; i < arr.length; i++) {
+            stats = arr[i].stats
+            k = null_check(stats.championsKilled)
+            d = null_check(stats.numDeaths)
+            a = null_check(stats.assists)
+            total = get_adjusted_kds(k, d, a) 
+            //console.log(k, d, a, k/d, total)
+            tmp.push(total)
+          }
+          return tmp
         }
-        console.log("All Games KD:", kds)
+            
+        // establish baseline, overall kds
+        recent_kds = get_kds(games)
+        console.log("All Games KD:", recent_kds)
 
 
         // consider number of games, k/d, etc.
-        if (recent_games) {
-          //console.log(games)
-          //console.log(play_times)
-          //console.log(recent_games)
-          //console.log(previous_games)
+        if (session_games) {
+          // games
+          previous_game = games[0]
+          // recent_kds
+          // session_games
+          session_kds = get_kds(session_games)
+          // previous_games (before session)
+        
+          // LOWER KDS
+          // compare previous game to session
+          // compare previous game to recent history
+          // compare session kds to recent kds
+          console.log("Session KD:", session_kds)
+          console.log("To Compare:", recent_kds.slice(1))
 
-          for (i = 0; i < recent_games.length; i++) {
-            game = recent_games[i]
+          store = 0
+          slice = recent_kds.slice(1)
+          for (k = 0; k < slice.length; k++) {
+            curr = slice[k]
+            try {
+              prev = session_kds[k]
+            } catch(err) {
+              break
+            }
+          } 
+
+          for (i = 0; i < session_games.length; i++) {
+            game = session_games[i]
             type = game.subType
             this_player = game.championId
             mode = game.gameMode
@@ -183,12 +219,6 @@ var app = angular.module("app", [])
             kills = stats.championsKilled
             deaths = stats.numDeaths
             assists = stats.assists
-
-            // do they have many kills and few/no deaths
-            // or do they have many assists and few/no deaths
-            // do they have many deaths, and few/no kills
-            // do they have many deaths, few kills, and many assists
-
           }
         }
       })
