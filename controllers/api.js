@@ -5,7 +5,7 @@ var conf = require("../config")
 var util = require("util")
 
 
-router.get("/api/current/:region/:name", function(req, res, next) {
+router.get("/current/:region/:name", function(req, res, next) {
 
   var region = req.params.region
   var name = req.params.name
@@ -35,7 +35,7 @@ router.get("/api/current/:region/:name", function(req, res, next) {
 })  
 
 
-router.get("/api/history/:region/:id", function(req, res, next) {
+router.get("/history/:region/:id", function(req, res, next) {
 
   var region = req.params.region
   var id = req.params.id
@@ -49,7 +49,7 @@ router.get("/api/history/:region/:id", function(req, res, next) {
   })
 })
 
-router.get("/api/champ/:region", function(req, res, next) {
+router.get("/champ/:region", function(req, res, next) {
 
   var region = req.params.region
   var champId = req.params.id

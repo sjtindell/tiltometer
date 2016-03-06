@@ -43,6 +43,14 @@ var app = angular.module("app", [])
         }
         console.log("PlayerGames:", games)
 
+        // has player played this champ recently
+        times_played = 0
+        for (i = 0; i < games.length; i++) {
+          if (games[i].championId == player.championId) {
+            times_played += 1
+          }
+        }
+
         // playing a champ you're not used to because
         // they beat you last game
         previous_game = playerHistory.data.games[0]
@@ -72,13 +80,6 @@ var app = angular.module("app", [])
           console.log("and win is", previous_game.stats.win)
         }
 
-        // has player played this champ recently
-        times_played = 0
-        for (i = 0; i < games.length; i++) {
-          if (games[i].championId == player.championId) {
-            times_played += 1
-          }
-        }
         // playing new champ e.g. bad lobby, favorite banned, etc.
         // have you played champ in last 10 games?
         console.log("PlayedThisChamp:", times_played, "times")
