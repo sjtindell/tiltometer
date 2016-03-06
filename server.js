@@ -6,7 +6,10 @@ var conf = require("./config")
 var util = require("util")
 
 var app = express()
+
 app.use(bodyParser.json())
+
+app.use("/", require("./controllers/static"))
 
 app.use("/favicon.ico", express.static("favicon.ico"))
 
