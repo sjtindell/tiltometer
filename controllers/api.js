@@ -1,6 +1,5 @@
 var router = require("express").Router()
 var request = require("request-promise")
-var path = require("path")
 var conf = require("../config")
 var util = require("util")
 
@@ -23,15 +22,7 @@ router.get("/current/:region/:name", function(req, res, next) {
       data = JSON.parse(body)
       res.json(data)
     })
-    .catch(function(err) {
-      console.log("crawl failed")
-      console.log(err)
-    })
   })
-  .catch(function(err) {
-    console.log("crawl failed")
-    console.log(err)
-  }) 
 })  
 
 
